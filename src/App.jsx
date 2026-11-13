@@ -5,6 +5,7 @@ import {
   DollarSign, ShoppingBag, Package, TrendingUp, ClipboardList, Loader2, RotateCcw, QrCode, Wallet, MessageSquare, Send
 } from 'lucide-react';
 import LuckyWheelModal from './components/LuckyWheelModal';
+import AuthModal from './components/AuthModal';
 
 export default function App() {
   // --- STATE QUẢN LÝ CƠ BẢN & GIAO DIỆN ---
@@ -22,6 +23,8 @@ export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isOrdersUserOpen, setIsOrdersUserOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false); // Chatbot
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const [adminTab, setAdminTab] = useState('stats');
   const [selectedProduct, setSelectedProduct] = useState(null);
 
@@ -201,12 +204,13 @@ export default function App() {
   };
 
   // TRẢ HÀNG HOÀN TIỀN
-  const handleRequestReturn = (orderId) => {
-    const reason = prompt("Vui lòng nhập lý do bạn muốn trả hàng:");
-    if (!reason) return;
-    setOrderHistory(prev => prev.map(o => o.id === orderId ? { ...o, status: 'return_requested', returnReason: reason } : o));
-    alert("Yêu cầu trả hàng đã được gửi đến Admin!");
-  };
+ // TRẢ HÀNG HOÀN TIỀN
+const handleRequestReturn = (orderId) => {
+  const reason = prompt("Vui lòng nhập lý do bạn muốn trả hàng:");
+  if (!reason) return;
+  setOrderHistory(prev => prev.map(o => o.id === orderId ? { ...o, status: 'return_requested', returnReason: reason } : o));
+  alert("Yêu cầu trả hàng đã được gửi đến Admin!");
+};
 
   const handleApproveReturn = (orderId) => {
     if (confirm("Xác nhận duyệt TRẢ HÀNG & HOÀN TIỀN?")) {
@@ -240,6 +244,25 @@ export default function App() {
             <button onClick={() => setDarkMode(!darkMode)} className="p-2 bg-red-700 hover:bg-red-800 rounded-lg text-yellow-300 transition">
               {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
+               {currentUser ? (
+  <div className="flex items-center gap-2 px-3 py-1.5 bg-red-800 rounded-lg text-white text-sm">
+    <User className="w-4 h-4 text-yellow-300" />
+    <span className="font-semibold truncate max-w-[120px]">{currentUser.name || currentUser.email}</span>
+    <button
+      onClick={() => setCurrentUser(null)}
+      className="text-xs text-yellow-200 hover:text-white underline ml-1 font-medium"
+    >
+      Thoát
+    </button>
+  </div>
+) : (
+  <button 
+    onClick={() => setIsAuthOpen(true)} 
+    className="bg-red-700 hover:bg-red-800 text-white font-bold px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 transition-all"
+  >
+    <User className="w-4 h-4 text-yellow-300" /> Đăng Nhập
+  </button>
+)}
 
             <button onClick={() => setIsOrdersUserOpen(true)} className="bg-red-700 hover:bg-red-800 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1 border border-red-500">
               <Package className="w-4 h-4 text-yellow-300" /> Đơn Hàng Của Tôi
@@ -587,6 +610,13 @@ export default function App() {
           </form>
         </div>
       )}
+
+      {/* Modal Đăng Nhập / Đăng Ký */}
+      <AuthModal 
+        isOpen={isAuthOpen} 
+        onClose={() => setIsAuthOpen(false)} 
+        onLoginSuccess={(user) => setCurrentUser(user)} 
+      />
     </div>
   );
 }
